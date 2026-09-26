@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="so" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soo Gal - VoiceTrans AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+  <div class="glass-panel w-full max-w-md p-8 sm:p-10">
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/30 mb-4">
+        🎙️
+      </div>
+      <h2 class="text-2xl font-bold text-white">Ku Soo Dhawoow</h2>
+      <p class="text-sm text-slate-400 mt-1">Gal akoonkaaga si aad u bilowdo wicitaan</p>
+    </div>
+
+    <form id="loginForm" class="space-y-4">
+      <div id="errorAlert" class="hidden p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs"></div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Username ama Email</label>
+        <input type="text" id="loginId" required placeholder="ali2026 ama ali@example.com" 
+               class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+        <input type="password" id="password" required placeholder="••••••••" 
+               class="w-full px-4 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500">
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full mt-4 py-3 rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white shadow-lg shadow-indigo-500/30 transition flex items-center justify-center gap-2">
+        <span>Soo Gal (Login)</span>
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-xs text-slate-400">
+      Akoon ma lihid? <a href="/register" class="text-indigo-400 hover:underline font-semibold">Halkan ka sameyso (Register)</a>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    const form = document.getElementById("loginForm");
+    const errorAlert = document.getElementById("errorAlert");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      errorAlert.classList.add("hidden");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Waa la hubinayaa...";
+
+      const payload = {
+        login: document.getElementById("loginId").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          Auth.setToken(data.access_token);
+          Auth.setUser(data.user);
+          window.location.href = "/dashboard";
+        } else {
+          errorAlert.textContent = data.detail || "Email/Password-ka waa khalad.";
+          errorAlert.classList.remove("hidden");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Soo Gal (Login)";
+        }
+      } catch (err) {
+        errorAlert.textContent = "Server-ka lama xiriiri karo.";
+        errorAlert.classList.remove("hidden");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Soo Gal (Login)";
+      }
+    };
+  </script>
+</body>
+</html>

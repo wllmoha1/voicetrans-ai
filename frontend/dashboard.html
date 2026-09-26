@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="so" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - VoiceTrans AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+  <!-- Navbar -->
+  <header class="border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-50 bg-slate-950/70">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30">
+          🎙️
+        </div>
+        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-300 to-teal-300">
+          VoiceTrans AI
+        </span>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <div id="navFullName" class="text-sm font-semibold text-white">Loading...</div>
+          <div id="navUsername" class="text-xs text-slate-400">@user</div>
+        </div>
+        <button id="logoutBtn" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition">
+          Ka Bax (Logout)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <main class="max-w-6xl mx-auto px-6 py-10 flex-1 w-full space-y-8">
+    <!-- Welcome Header -->
+    <div class="glass-panel p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white">
+          Ku soo dhawoow, <span id="welcomeName" class="text-indigo-400">Walaal</span>! 👋
+        </h1>
+        <p class="text-sm text-slate-400 mt-1">
+          Halkan waxaad ka bilaabi kartaa wicitaan cusub oo cod-ilaa-cod AI ah ama waxaad ku biiri kartaa wicitaan kale.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          AI Engine Online
+        </span>
+      </div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Card 1: Start Instant Call -->
+      <div class="glass-panel p-6 sm:p-8 flex flex-col justify-between space-y-6 border-indigo-500/30">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-4">
+            📞
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2">Bilaaw Wicitaan Cusub (Start Call)</h2>
+          <p class="text-sm text-slate-400">
+            Samee Room ID gaar ah oo la wadaag qofka aad rabto inaad la hadasho. AI ayaa si toos ah codkiina u kala turjumaysa!
+          </p>
+        </div>
+
+        <div id="roomCreatedBox" class="hidden p-4 rounded-xl bg-slate-900 border border-indigo-500/40 space-y-3">
+          <div class="text-xs text-indigo-300 font-medium">Room-kaaga waa diyaar:</div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="roomLinkInput" readonly class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-300 font-mono">
+            <button id="copyLinkBtn" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-white whitespace-nowrap">
+              Koobiyee
+            </button>
+          </div>
+          <a id="enterRoomLink" href="#" class="block text-center w-full py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white text-sm shadow-md transition">
+            Gal Wicitaanka Hadda ➔
+          </a>
+        </div>
+
+        <button id="createRoomBtn" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white shadow-lg shadow-indigo-500/25 transition flex items-center justify-center gap-2">
+          <span>🚀</span>
+          <span>Samee Qolka Wicitaanka (Generate Call)</span>
+        </button>
+      </div>
+
+      <!-- Card 2: Join Call by Code -->
+      <div class="glass-panel p-6 sm:p-8 flex flex-col justify-between space-y-6">
+        <div>
+          <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl mb-4">
+            🔗
+          </div>
+          <h2 class="text-xl font-bold text-white mb-2">Ku Biir Wicitaan (Join Call)</h2>
+          <p class="text-sm text-slate-400">
+            Haddii qof kale uu kugu soo casuumay wicitaan, ku qor halkan Room ID-ga ama Link-ga laguugu soo diray.
+          </p>
+        </div>
+
+        <form id="joinRoomForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Geli Room ID ama Call Link</label>
+            <input type="text" id="joinRoomCode" required placeholder="tusaale: a4f8e19b" 
+                   class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-500">
+          </div>
+          <button type="submit" class="w-full py-3.5 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white shadow-md transition flex items-center justify-center gap-2">
+            <span>Ku Biir Wicitaanka</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Language & Voice Preferences Section -->
+    <div class="glass-panel p-6 sm:p-8">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-white">Dookhaaga Luqadda & Codka AI (Preferences)</h2>
+          <p class="text-xs text-slate-400">Waxaad beddeli kartaa luqadaha aad ku hadlayso ama maqlayso wicitaanadaada.</p>
+        </div>
+        <div id="saveSuccessAlert" class="hidden text-xs text-emerald-400 font-semibold">✓ Waa la keydiyay!</div>
+      </div>
+
+      <form id="prefForm" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Luqadda Aad Ku Hadlayso</label>
+          <select id="prefNativeLang" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Luqadda Aad Rabto Inaad Ku Maqasho</label>
+          <select id="prefTargetLang" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Dooro Codka AI-da</label>
+          <select id="prefVoiceGender" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500">
+            <option value="male">👨 Lab (Muuse / Guy / Hamed)</option>
+            <option value="female">👩 Dhedig (Ubax / Jenny / Salma)</option>
+          </select>
+        </div>
+
+        <div class="sm:col-span-3 flex justify-end">
+          <button type="submit" class="px-6 py-2.5 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white text-sm shadow-md transition">
+            Keydi Dookhyada
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 VoiceTrans AI. Real-Time Multilingual Voice Translation System.
+  </footer>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function initDashboard() {
+      currentUser = await Auth.checkAuth(true);
+      if (!currentUser) return;
+
+      document.getElementById("navFullName").textContent = currentUser.full_name || currentUser.username;
+      document.getElementById("navUsername").textContent = `@${currentUser.username}`;
+      document.getElementById("welcomeName").textContent = currentUser.full_name || currentUser.username;
+
+      await loadLanguageCatalog();
+    }
+
+    async function loadLanguageCatalog() {
+      try {
+        const res = await fetch("/api/languages");
+        const data = await res.json();
+        const langs = data.languages || [];
+
+        const nativeSelect = document.getElementById("prefNativeLang");
+        const targetSelect = document.getElementById("prefTargetLang");
+
+        langs.forEach(l => {
+          const opt1 = document.createElement("option");
+          opt1.value = l.code;
+          opt1.textContent = `${l.flag || ''} ${l.name}`;
+          if (l.code === currentUser.native_language) opt1.selected = true;
+          nativeSelect.appendChild(opt1);
+
+          const opt2 = document.createElement("option");
+          opt2.value = l.code;
+          opt2.textContent = `${l.flag || ''} ${l.name}`;
+          if (l.code === currentUser.target_language) opt2.selected = true;
+          targetSelect.appendChild(opt2);
+        });
+
+        document.getElementById("prefVoiceGender").value = currentUser.preferred_voice || "male";
+      } catch (e) {
+        console.error("Language load failed:", e);
+      }
+    }
+
+    // Create Room
+    document.getElementById("createRoomBtn").onclick = async () => {
+      const btn = document.getElementById("createRoomBtn");
+      btn.disabled = true;
+      btn.textContent = "Qolka waa la furayaa...";
+
+      try {
+        const res = await Auth.authFetch("/api/rooms/create", { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          const fullLink = `${window.location.origin}/call/${data.room_id}`;
+          document.getElementById("roomLinkInput").value = fullLink;
+          document.getElementById("enterRoomLink").href = `/call/${data.room_id}`;
+          document.getElementById("roomCreatedBox").classList.remove("hidden");
+          btn.textContent = "Samee Qol Kale";
+          btn.disabled = false;
+        }
+      } catch (err) {
+        alert("Qolka lama abuuri karo hadda.");
+        btn.disabled = false;
+        btn.textContent = "Samee Qolka Wicitaanka (Generate Call)";
+      }
+    };
+
+    // Copy Link
+    document.getElementById("copyLinkBtn").onclick = () => {
+      const input = document.getElementById("roomLinkInput");
+      navigator.clipboard.writeText(input.value);
+      document.getElementById("copyLinkBtn").textContent = "✓ La koobiyeeyay!";
+      setTimeout(() => {
+        document.getElementById("copyLinkBtn").textContent = "Koobiyee";
+      }, 2000);
+    };
+
+    // Join Room
+    document.getElementById("joinRoomForm").onsubmit = (e) => {
+      e.preventDefault();
+      let code = document.getElementById("joinRoomCode").value.trim();
+      // If full url pasted, extract room id
+      if (code.includes("/call/")) {
+        code = code.split("/call/")[1].split("?")[0].replace("/", "");
+      }
+      if (code) {
+        window.location.href = `/call/${code}`;
+      }
+    };
+
+    // Save Preferences
+    document.getElementById("prefForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const payload = {
+        native_language: document.getElementById("prefNativeLang").value,
+        target_language: document.getElementById("prefTargetLang").value,
+        preferred_voice: document.getElementById("prefVoiceGender").value
+      };
+
+      const res = await Auth.authFetch("/api/auth/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const alertBox = document.getElementById("saveSuccessAlert");
+        alertBox.classList.remove("hidden");
+        setTimeout(() => alertBox.classList.add("hidden"), 3000);
+      }
+    };
+
+    document.getElementById("logoutBtn").onclick = () => Auth.logout();
+
+    initDashboard();
+  </script>
+</body>
+</html>
