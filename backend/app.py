@@ -1,10 +1,16 @@
 import os
+import sys
 import uuid
 import logging
 import asyncio
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
+
+# Automatically ensure project root is in sys.path so "Run" button in VS Code works directly
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, status, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -578,3 +584,14 @@ async def call_websocket(
             "username": participant.username,
             "participants": room.get_participant_list()
         })
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    print("\n" + "=" * 60)
+    print(f"[*] VoiceTrans Server is starting locally:")
+    print(f"[*] Open in browser: http://localhost:{port}")
+    print("=" * 60 + "\n")
+    uvicorn.run("backend.app:app", host="0.0.0.0", port=port, reload=True)
+
