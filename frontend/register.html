@@ -148,7 +148,12 @@
           body: JSON.stringify(payload)
         });
 
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch (_) {
+          data = { detail: "Khalad ayaa ka dhacay server-ka (" + res.status + ")" };
+        }
         if (res.ok) {
           Auth.setToken(data.access_token);
           Auth.setUser(data.user);
@@ -160,7 +165,7 @@
           submitBtn.textContent = "Diiwaangeli Akoonka";
         }
       } catch (err) {
-        errorAlert.textContent = "Server-ka lama xiriiri karo.";
+        errorAlert.textContent = "Server-ka lama xiriiri karo: " + err.message;
         errorAlert.classList.remove("hidden");
         submitBtn.disabled = false;
         submitBtn.textContent = "Diiwaangeli Akoonka";

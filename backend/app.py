@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, desc
 
 from backend.config import BASE_DIR, SECRET_KEY, ALGORITHM
-from backend.database import engine, get_db, Base
+from backend.database import engine, get_db, Base, init_db
 from backend.models import User, CallRecord, Friendship, ChatMessage
 from backend.auth import (
     hash_password,
@@ -38,8 +38,8 @@ from backend.services.translation import TranslationService
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("voice_call_app")
 
-# Initialize database tables
-Base.metadata.create_all(bind=engine)
+# Initialize database tables and run automatic migrations
+init_db()
 
 app = FastAPI(
     title="VoiceTrans AI - Professional Call & Social Translation App",
