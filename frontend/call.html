@@ -3,43 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Call - VoiceTrans AI</title>
+  <title>Live AI Voice Call - VoiceTrans</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex flex-col justify-between p-4 sm:p-6 select-none">
-  <!-- Top Bar: Room ID, Status, Latency & In-Call Language Selectors -->
-  <header class="glass-panel px-6 py-3 flex flex-wrap items-center justify-between gap-4 z-20">
+<body class="bg-slate-950 text-slate-100 h-screen overflow-hidden flex flex-col justify-between p-3 sm:p-5 select-none">
+
+  <!-- Audio Autoplay Unlock Alert (If browser blocks initial audio) -->
+  <div id="audioUnlockOverlay" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel p-6 sm:p-8 max-w-md text-center space-y-4 border-indigo-500/50 shadow-2xl animate-fade-in">
+      <div class="text-4xl">🎙️</div>
+      <h3 class="text-lg font-bold text-white">Ku Biir Wicitaanka Tooska ah</h3>
+      <p class="text-xs text-slate-300">
+        Riix badhankan si browser-kaagu u ogolaado codka tooska ah iyo microphone-ka.
+      </p>
+      <button class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30 transition text-sm">
+        📞 Fur Codka & Bilow Hadalka
+      </button>
+    </div>
+  </div>
+
+  <!-- Top Bar: Room ID, Status, In-Call Language Selectors -->
+  <header class="glass-panel px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 z-20">
     <div class="flex items-center gap-3">
       <a href="/dashboard" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-sm transition">
         ←
       </a>
       <div>
-        <div class="text-xs text-slate-400 font-medium">Room ID: <span id="roomIdDisplay" class="text-white font-mono font-bold">...</span></div>
-        <div id="callStatus" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+        <div class="text-[11px] text-slate-400 font-medium">Room: <span id="roomIdDisplay" class="text-indigo-400 font-mono font-bold">...</span></div>
+        <div id="callStatus" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
           Isku xiraya...
         </div>
       </div>
     </div>
 
-    <!-- Live Latency Indicator -->
+    <!-- Live Latency Badge -->
     <div id="latencyBadge" class="hidden text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold font-mono">
       ⚡ Latency: 0.0s
     </div>
 
-    <!-- In-Call Language Quick Switchers -->
-    <div class="flex items-center gap-3 flex-wrap">
-      <div class="flex items-center gap-1.5 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
+    <!-- In-Call Language Controls -->
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+      <div class="flex items-center gap-1 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
         <span class="text-slate-400">🗣️ Hadal:</span>
         <select id="mySpeakingSelect" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"></select>
       </div>
 
-      <div class="flex items-center gap-1.5 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
+      <div class="flex items-center gap-1 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
         <span class="text-slate-400">👂 Maqal:</span>
         <select id="myListeningSelect" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"></select>
       </div>
 
-      <div class="hidden sm:flex items-center gap-1.5 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
+      <div class="hidden sm:flex items-center gap-1 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-700">
         <span class="text-slate-400">Cod:</span>
         <select id="voiceGenderSelect" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
           <option value="male">👨 Lab</option>
@@ -49,80 +64,103 @@
     </div>
   </header>
 
-  <!-- Main Call Stage -->
-  <main class="flex-1 flex flex-col md:flex-row items-center justify-center gap-8 my-4 relative overflow-hidden">
-    <!-- Call Stage: Remote Participant Centerpiece -->
-    <div class="flex-1 flex flex-col items-center justify-center text-center space-y-6 z-10 w-full">
-      <!-- Pulsing Avatar for Remote Caller / AI Speaker -->
-      <div class="relative">
-        <div id="remoteAvatar" class="pulse-avatar w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-gradient-to-tr from-indigo-600 via-slate-800 to-cyan-500 p-1 flex items-center justify-center shadow-2xl">
-          <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-5xl sm:text-6xl">
-            👤
+  <!-- Main Call Stage: DUAL PROFILES SIDE-BY-SIDE -->
+  <main class="flex-1 flex flex-col items-center justify-center my-3 relative overflow-hidden">
+    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-11 gap-4 items-center justify-center p-2">
+
+      <!-- PROFILE 1: ADIGA (YOU) -->
+      <div class="md:col-span-4 glass-panel p-5 sm:p-6 flex flex-col items-center text-center space-y-4 border-slate-700/80 shadow-xl">
+        <div class="relative">
+          <div id="localAvatar" class="pulse-avatar w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-emerald-500 via-slate-800 to-teal-400 p-1 flex items-center justify-center shadow-lg">
+            <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-4xl sm:text-5xl">
+              👤
+            </div>
           </div>
+          <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-emerald-600 border border-emerald-400 text-[10px] font-bold text-white shadow">
+            ADIGA
+          </span>
         </div>
 
-        <!-- AI Voice Badge -->
-        <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 border border-indigo-400/50 text-[11px] font-bold text-white shadow-lg flex items-center gap-1">
-          <span>🤖</span>
-          <span>AI Voice Stream</span>
+        <div>
+          <h3 id="localName" class="text-lg sm:text-xl font-bold text-white">Adiga</h3>
+          <div id="localLangBadge" class="text-xs text-emerald-400 font-semibold mt-1">🗣️ Ku hadal: SO</div>
+        </div>
+
+        <div id="localStatusBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          🎙️ Mic Diyaar ah
         </div>
       </div>
 
-      <div>
-        <h2 id="remoteName" class="text-2xl sm:text-3xl font-bold text-white tracking-wide">
-          Qof kale ayaa la sugayaa...
-        </h2>
-        <p id="remoteLangBadge" class="text-xs text-indigo-300 mt-1 font-medium">
-          Sug inta qofka labaad soo galayo qolkan
-        </p>
+      <!-- CENTER: AI TRANSLATION BRIDGE -->
+      <div class="md:col-span-3 flex flex-col items-center justify-center text-center space-y-2 py-2">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/20 animate-pulse">
+          ⚡
+        </div>
+        <div class="text-xs font-bold text-indigo-300 uppercase tracking-wider">
+          AI Voice Bridge
+        </div>
+        <div id="bridgeStatus" class="text-[11px] text-slate-400 max-w-[180px] leading-tight">
+          Sugaya qofka labaad...
+        </div>
       </div>
 
-      <!-- Local User Mini Card (Bottom Left or Float) -->
-      <div class="flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md">
-        <div id="localAvatar" class="pulse-avatar w-10 h-10 rounded-full bg-emerald-600/30 border border-emerald-500/50 flex items-center justify-center text-lg">
-          🎙️
+      <!-- PROFILE 2: QOFKA KALE (REMOTE CALLER) -->
+      <div class="md:col-span-4 glass-panel p-5 sm:p-6 flex flex-col items-center text-center space-y-4 border-slate-700/80 shadow-xl">
+        <div class="relative">
+          <div id="remoteAvatar" class="pulse-avatar w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-indigo-500 via-slate-800 to-cyan-400 p-1 flex items-center justify-center shadow-lg">
+            <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-4xl sm:text-5xl">
+              👤
+            </div>
+          </div>
+          <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-indigo-600 border border-indigo-400 text-[10px] font-bold text-white shadow whitespace-nowrap">
+            QOFKA KALE
+          </span>
         </div>
-        <div class="text-left">
-          <div class="text-xs font-bold text-white">Adiga (Microphone)</div>
-          <div class="text-[10px] text-emerald-400">Codkaaga toos ayuu u baxayaa</div>
+
+        <div>
+          <h3 id="remoteName" class="text-lg sm:text-xl font-bold text-white">Qof labaad ayaa la sugayaa...</h3>
+          <div id="remoteLangBadge" class="text-xs text-indigo-300 font-semibold mt-1">👂 Maqlaya: EN</div>
+        </div>
+
+        <div id="remoteStatusBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          ⏳ Sugaya...
         </div>
       </div>
+
     </div>
 
-    <!-- Live Subtitles & AI Translation Transcript Sidebar/Panel -->
-    <div class="w-full md:w-96 h-48 md:h-full max-h-[380px] md:max-h-[500px] glass-panel p-4 flex flex-col z-10">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300">
-          <span>💬</span>
-          <span>Live Turjumaad (Cod + Qoraal)</span>
-        </div>
-        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+    <!-- Live Subtitles & Captions Bar -->
+    <div class="w-full max-w-4xl h-28 sm:h-32 glass-panel p-3 flex flex-col mt-3">
+      <div class="flex items-center justify-between pb-1.5 border-b border-slate-800 mb-1.5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <span>💬</span> Live Turjumaad (Cod + Qoraal)
+        </span>
+        <span class="text-[10px] text-indigo-400 font-mono">Real-time Stream</span>
       </div>
-
-      <div id="subtitlesContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
-        <div class="text-center py-8 text-xs text-slate-500">
-          Marka uu hadal bilowdo, AI ayaa isla markiiba codka u badalaysa luqadda loo doortay, qoraalkana halkan ku soo saareysa...
+      <div id="subtitlesContainer" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
+        <div class="text-center py-4 text-slate-500 text-[11px]">
+          Marka uu hadal bilowdo, AI ayaa isla markiiba codka u badalaysa luqadda loo doortay...
         </div>
       </div>
     </div>
   </main>
 
   <!-- Bottom Call Control Bar -->
-  <footer class="glass-panel px-6 py-4 flex items-center justify-center gap-6 z-20 max-w-lg mx-auto w-full">
+  <footer class="glass-panel px-6 py-3 flex items-center justify-center gap-6 z-20 max-w-md mx-auto w-full">
     <!-- Mute/Unmute Mic -->
-    <button id="muteBtn" class="flex flex-col items-center gap-1 px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white shadow-lg transition">
+    <button id="muteBtn" class="flex flex-col items-center gap-1 px-5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white shadow-lg transition">
       <span class="text-xl">🎤</span>
       <span>Mute</span>
     </button>
 
-    <!-- Deafen / Mute Incoming Audio -->
-    <button id="deafenBtn" class="flex flex-col items-center gap-1 px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white shadow-lg transition">
+    <!-- Deafen Speaker -->
+    <button id="deafenBtn" class="flex flex-col items-center gap-1 px-5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white shadow-lg transition">
       <span class="text-xl">🔊</span>
       <span>Deafen</span>
     </button>
 
-    <!-- End Call Button -->
-    <button id="endCallBtn" class="flex flex-col items-center gap-1 px-6 py-2.5 rounded-2xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg shadow-red-600/30 transition">
+    <!-- End Call -->
+    <button id="endCallBtn" class="flex flex-col items-center gap-1 px-6 py-2 rounded-2xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-lg shadow-red-600/30 transition">
       <span class="text-xl">🔴</span>
       <span>Jar (End)</span>
     </button>
@@ -133,7 +171,6 @@
   <script src="/js/audio_streamer.js"></script>
   <script src="/js/call_controller.js"></script>
   <script>
-    // Extract Room ID from URL pathname /call/{room_id}
     const pathParts = window.location.pathname.split("/").filter(Boolean);
     const roomId = pathParts[pathParts.length - 1] || "default";
 

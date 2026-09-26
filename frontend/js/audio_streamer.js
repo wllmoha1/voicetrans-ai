@@ -1,4 +1,5 @@
 // Audio Streamer with Browser-Side Voice Activity Detection (VAD)
+// Optimized for low-latency fast turnaround and short word captures
 
 class AudioStreamer {
   constructor(options = {}) {
@@ -15,8 +16,8 @@ class AudioStreamer {
     this.isMuted = false;
     this.isSpeaking = false;
     this.silenceTimer = null;
-    this.silenceThreshold = options.silenceThreshold || 0.025; // Energy threshold
-    this.silenceDurationMs = options.silenceDurationMs || 650;  // Pause before sending
+    this.silenceThreshold = options.silenceThreshold || 0.018; // Sensitive voice energy
+    this.silenceDurationMs = options.silenceDurationMs || 450;   // Fast pause detection
     this.animationFrameId = null;
   }
 
@@ -33,16 +34,20 @@ class AudioStreamer {
       });
 
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.audioContext.state === "suspended") {
+        await this.audioContext.resume();
+      }
+
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 512;
-      this.analyser.smoothingTimeConstant = 0.4;
+      this.analyser.smoothingTimeConstant = 0.3;
       source.connect(this.analyser);
 
       this.initMediaRecorder();
       this.startVADLoop();
 
-      console.log("AudioStreamer started successfully.");
+      console.log("AudioStreamer started and capturing mic.");
       return true;
     } catch (err) {
       console.error("Microphone access failed:", err);
@@ -55,7 +60,10 @@ class AudioStreamer {
     if (!MediaRecorder.isTypeSupported(mimeType)) {
       mimeType = "audio/webm";
       if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "";
+        mimeType = "audio/mp4";
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = "";
+        }
       }
     }
 
@@ -72,9 +80,9 @@ class AudioStreamer {
       if (this.audioChunks.length > 0) {
         const fullBlob = new Blob(this.audioChunks, { type: this.mediaRecorder.mimeType || "audio/webm" });
         this.audioChunks = [];
-        // Only send if segment is meaningful (> 2500 bytes)
-        if (fullBlob.size > 2500) {
-          console.log(`Sending speech segment: ${fullBlob.size} bytes`);
+        // Accept segments > 500 bytes (captures short words like 'Haa', 'Hello', etc.)
+        if (fullBlob.size > 500) {
+          console.log(`Sending speech audio segment: ${fullBlob.size} bytes`);
           this.onAudioChunk(fullBlob);
         }
       }
@@ -99,7 +107,6 @@ class AudioStreamer {
       }
       const rms = Math.sqrt(sum / buffer.length);
 
-      // Pass frequency/volume data for visualizer
       this.onVisualizerData(rms);
 
       // Check speech activity
@@ -110,14 +117,14 @@ class AudioStreamer {
           this.startRecordingChunk();
         }
 
-        // Reset silence timer whenever there is voice
+        // Reset silence pause timer whenever voice energy is detected
         if (this.silenceTimer) {
           clearTimeout(this.silenceTimer);
           this.silenceTimer = null;
         }
       } else {
         if (this.isSpeaking && !this.silenceTimer) {
-          // User stopped speaking, wait for pause duration then flush
+          // Pause detected, wait 450ms then flush speech segment
           this.silenceTimer = setTimeout(() => {
             this.isSpeaking = false;
             this.onSpeakingStateChange(false);
@@ -136,7 +143,7 @@ class AudioStreamer {
   startRecordingChunk() {
     if (this.mediaRecorder && this.mediaRecorder.state === "inactive") {
       this.audioChunks = [];
-      this.mediaRecorder.start(200); // 200ms slice interval
+      this.mediaRecorder.start(100);
     }
   }
 
@@ -161,20 +168,16 @@ class AudioStreamer {
   }
 
   stop() {
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
-    if (this.silenceTimer) {
-      clearTimeout(this.silenceTimer);
-    }
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+    if (this.silenceTimer) clearTimeout(this.silenceTimer);
     if (this.mediaRecorder && this.mediaRecorder.state !== "inactive") {
-      this.mediaRecorder.stop();
+      try { this.mediaRecorder.stop(); } catch (e) {}
     }
     if (this.mediaStream) {
       this.mediaStream.getTracks().forEach(track => track.stop());
     }
     if (this.audioContext && this.audioContext.state !== "closed") {
-      this.audioContext.close();
+      try { this.audioContext.close(); } catch (e) {}
     }
     this.isSpeaking = false;
   }

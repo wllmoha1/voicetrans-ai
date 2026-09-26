@@ -1,6 +1,6 @@
 """
 Call Room Manager for WebSocket-based real-time call sessions.
-Tracks connected participants, their selected languages, and audio streaming routes.
+Tracks connected participants using unique session IDs for reliable peer pairing.
 """
 
 from typing import Dict, Optional, Any
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Participant:
     def __init__(
         self,
+        session_id: str,
         user_id: int,
         username: str,
         full_name: str,
@@ -20,6 +21,7 @@ class Participant:
         listening_language: str = "en",
         voice_gender: str = "male"
     ):
+        self.session_id = session_id
         self.user_id = user_id
         self.username = username
         self.full_name = full_name
@@ -31,6 +33,7 @@ class Participant:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "session_id": self.session_id,
             "user_id": self.user_id,
             "username": self.username,
             "full_name": self.full_name,
@@ -44,18 +47,19 @@ class Participant:
 class Room:
     def __init__(self, room_id: str):
         self.room_id = room_id
-        self.participants: Dict[int, Participant] = {}
+        # Keyed by session_id to guarantee unique entries even if same user opens 2 tabs
+        self.participants: Dict[str, Participant] = {}
 
     def add_participant(self, participant: Participant):
-        self.participants[participant.user_id] = participant
+        self.participants[participant.session_id] = participant
 
-    def remove_participant(self, user_id: int) -> Optional[Participant]:
-        return self.participants.pop(user_id, None)
+    def remove_participant(self, session_id: str) -> Optional[Participant]:
+        return self.participants.pop(session_id, None)
 
-    def get_counterpart(self, current_user_id: int) -> Optional[Participant]:
-        """In a 2-person call, gets the other participant."""
-        for uid, p in self.participants.items():
-            if uid != current_user_id:
+    def get_counterpart(self, current_session_id: str) -> Optional[Participant]:
+        """Gets the other participant in the room."""
+        for sid, p in self.participants.items():
+            if sid != current_session_id:
                 return p
         return None
 
@@ -78,31 +82,31 @@ class RoomManager:
     def join_room(self, room_id: str, participant: Participant) -> Room:
         room = self.get_or_create_room(room_id)
         room.add_participant(participant)
-        logger.info(f"User {participant.username} (ID: {participant.user_id}) joined room {room_id}")
+        logger.info(f"Session {participant.session_id} ({participant.full_name}) joined room {room_id}. Total: {len(room.participants)}")
         return room
 
-    def leave_room(self, room_id: str, user_id: int):
+    def leave_room(self, room_id: str, session_id: str):
         room = self.get_room(room_id)
         if room:
-            room.remove_participant(user_id)
-            logger.info(f"User ID {user_id} left room {room_id}")
+            room.remove_participant(session_id)
+            logger.info(f"Session {session_id} left room {room_id}. Remaining: {len(room.participants)}")
             if len(room.participants) == 0:
                 del self.rooms[room_id]
                 logger.info(f"Room {room_id} deleted because it became empty.")
 
-    async def broadcast_json(self, room_id: str, data: dict, exclude_user_id: Optional[int] = None):
+    async def broadcast_json(self, room_id: str, data: dict, exclude_session_id: Optional[str] = None):
         """Sends a JSON message to all participants in a room."""
         room = self.get_room(room_id)
         if not room:
             return
 
-        for uid, p in list(room.participants.items()):
-            if exclude_user_id is not None and uid == exclude_user_id:
+        for sid, p in list(room.participants.items()):
+            if exclude_session_id is not None and sid == exclude_session_id:
                 continue
             try:
                 await p.websocket.send_json(data)
             except Exception as e:
-                logger.warning(f"Failed to send JSON to user {uid} in room {room_id}: {e}")
+                logger.warning(f"Failed to send JSON to session {sid} in room {room_id}: {e}")
 
     async def send_audio_bytes(self, websocket: WebSocket, audio_bytes: bytes):
         """Sends binary audio bytes to a specific participant."""

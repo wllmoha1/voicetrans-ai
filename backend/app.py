@@ -238,6 +238,8 @@ async def call_websocket(
 ):
     await websocket.accept()
 
+    session_id = uuid.uuid4().hex[:8]
+
     # Authenticate user from query token or fallback to guest caller
     user: Optional[User] = None
     if token:
@@ -251,6 +253,7 @@ async def call_websocket(
     voice_gender = user.preferred_voice if user else "male"
 
     participant = Participant(
+        session_id=session_id,
         user_id=user_id,
         username=username,
         full_name=full_name,
@@ -262,24 +265,34 @@ async def call_websocket(
 
     room = room_manager.join_room(room_id, participant)
 
-    # Broadcast to room that a new participant joined
+    # 1. Send direct init message to this connecting client
+    await websocket.send_json({
+        "type": "init",
+        "my_session_id": session_id,
+        "my_participant": participant.to_dict(),
+        "participants": room.get_participant_list()
+    })
+
+    # 2. Broadcast to other participants that a new peer joined
     await room_manager.broadcast_json(room_id, {
         "type": "peer_joined",
         "peer": participant.to_dict(),
         "participants": room.get_participant_list()
-    })
+    }, exclude_session_id=session_id)
 
-    logger.info(f"WebSocket connected: User {username} in room {room_id}")
+    logger.info(f"WebSocket session {session_id} connected: User {username} in room {room_id}")
 
     try:
         while True:
-            # WebSocket can receive binary audio chunks or JSON control messages
             message = await websocket.receive()
             
+            # Check for WebSocket disconnect event in Starlette
+            if message.get("type") == "websocket.disconnect":
+                break
+
             # 1. Binary Audio Chunk from Microphone
             if "bytes" in message and message["bytes"]:
                 audio_bytes = message["bytes"]
-                # Process through AI pipeline asynchronously without blocking socket loop
                 asyncio.create_task(
                     audio_pipeline.process_speech_chunk(
                         room_id=room_id,
@@ -296,13 +309,18 @@ async def call_websocket(
                     data = json.loads(message["text"])
                     msg_type = data.get("type")
 
-                    if msg_type == "speaking_state":
+                    # Heartbeat Ping to keep connection alive on Render
+                    if msg_type == "ping":
+                        await websocket.send_json({"type": "pong"})
+
+                    elif msg_type == "speaking_state":
                         participant.is_speaking = data.get("is_speaking", False)
                         await room_manager.broadcast_json(room_id, {
                             "type": "peer_speaking",
+                            "session_id": participant.session_id,
                             "user_id": participant.user_id,
                             "is_speaking": participant.is_speaking
-                        }, exclude_user_id=participant.user_id)
+                        }, exclude_session_id=participant.session_id)
 
                     elif msg_type == "update_languages":
                         if "speaking_language" in data:
@@ -314,7 +332,8 @@ async def call_websocket(
 
                         await room_manager.broadcast_json(room_id, {
                             "type": "languages_updated",
-                            "peer": participant.to_dict()
+                            "peer": participant.to_dict(),
+                            "participants": room.get_participant_list()
                         })
 
                     elif msg_type == "leave_call":
@@ -324,14 +343,17 @@ async def call_websocket(
                     logger.error(f"Error parsing incoming JSON message: {e}")
 
     except WebSocketDisconnect:
-        logger.info(f"WebSocket disconnected: User {username} from room {room_id}")
+        logger.info(f"WebSocket disconnected: Session {session_id} from room {room_id}")
     except Exception as e:
-        logger.error(f"WebSocket unexpected error for {username}: {e}")
+        logger.error(f"WebSocket error for session {session_id}: {e}")
     finally:
-        room_manager.leave_room(room_id, participant.user_id)
+        room_manager.leave_room(room_id, participant.session_id)
         # Notify counterpart
         await room_manager.broadcast_json(room_id, {
             "type": "peer_left",
+            "session_id": participant.session_id,
             "user_id": participant.user_id,
-            "username": participant.username
+            "username": participant.username,
+            "participants": room.get_participant_list()
         })
+

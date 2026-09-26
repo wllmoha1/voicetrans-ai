@@ -49,21 +49,28 @@ class TranslationService:
                     f"4. If translating between Somali and English/Arabic/others, ensure authentic idiomatic phrasing."
                 )
 
-                response = await self.groq_client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": text.strip()}
-                    ],
-                    temperature=0.3,
-                    max_tokens=256
-                )
+                models_to_try = ["llama-3.1-8b-instant", "llama3-8b-8192", "llama-3.3-70b-versatile"]
+                response = None
+                for m in models_to_try:
+                    try:
+                        response = await self.groq_client.chat.completions.create(
+                            model=m,
+                            messages=[
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": text.strip()}
+                            ],
+                            temperature=0.3,
+                            max_tokens=256
+                        )
+                        break
+                    except Exception as me:
+                        logger.warning(f"Groq model {m} failed: {me}. Trying next...")
                 
-                translated = response.choices[0].message.content.strip()
-                # Clean up any surrounding quotes or markdown
-                translated = translated.strip('"\'`')
-                logger.info(f"Translated [{source_lang} -> {target_lang}]: '{text}' => '{translated}'")
-                return translated
+                if response:
+                    translated = response.choices[0].message.content.strip()
+                    translated = translated.strip('"\'`')
+                    logger.info(f"Translated [{source_lang} -> {target_lang}]: '{text}' => '{translated}'")
+                    return translated
             except Exception as e:
                 logger.error(f"Groq translation error: {e}")
 

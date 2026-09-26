@@ -42,7 +42,7 @@ class AudioPipeline:
             logger.warning(f"Room {room_id} not found during audio processing.")
             return
 
-        counterpart = room.get_counterpart(speaker.user_id)
+        counterpart = room.get_counterpart(speaker.session_id)
         if not counterpart:
             logger.info(f"User {speaker.username} spoke, but no counterpart in room {room_id} yet.")
             return
@@ -54,6 +54,7 @@ class AudioPipeline:
         # Notify participants that AI is processing
         await room_manager.broadcast_json(room_id, {
             "type": "ai_processing",
+            "speaker_session_id": speaker.session_id,
             "speaker_id": speaker.user_id,
             "speaker_name": speaker.full_name or speaker.username
         })
@@ -69,7 +70,7 @@ class AudioPipeline:
             stt_latency = round((time.time() - t1) * 1000, 1)
 
             if not transcribed_text or not transcribed_text.strip():
-                logger.info("STT returned empty text (probably background noise or silence).")
+                logger.info("STT returned empty text (silence/ambient noise).")
                 await room_manager.broadcast_json(room_id, {
                     "type": "ai_idle"
                 })
@@ -84,12 +85,13 @@ class AudioPipeline:
             )
             translate_latency = round((time.time() - t2) * 1000, 1)
 
-            # Step 3: Text-to-Speech
+            # Step 3: Text-to-Speech (using crisp brisk delivery rate=+15%)
             t3 = time.time()
             synthesized_audio = await self.tts.synthesize_to_bytes(
                 text=translated_text,
                 language_code=target_lang,
-                gender=target_voice_gender
+                gender=target_voice_gender,
+                rate="+15%"
             )
             tts_latency = round((time.time() - t3) * 1000, 1)
             total_latency = round((time.time() - start_time) * 1000, 1)
@@ -102,6 +104,7 @@ class AudioPipeline:
             # Step 4: Broadcast Translation Subtitles/Event
             subtitle_payload = {
                 "type": "translation_complete",
+                "speaker_session_id": speaker.session_id,
                 "speaker_id": speaker.user_id,
                 "speaker_name": speaker.full_name or speaker.username,
                 "original_text": transcribed_text,
@@ -114,13 +117,11 @@ class AudioPipeline:
 
             # Step 5: Send the AI Voice Audio directly to the Counterpart's audio player!
             if synthesized_audio and len(synthesized_audio) > 0:
-                # Send notice that audio is coming
                 await counterpart.websocket.send_json({
                     "type": "incoming_audio_start",
                     "text": translated_text,
                     "target_lang": target_lang
                 })
-                # Stream synthesized binary audio bytes
                 await room_manager.send_audio_bytes(counterpart.websocket, synthesized_audio)
 
         except Exception as e:
