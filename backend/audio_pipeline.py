@@ -48,7 +48,7 @@ class AudioPipeline:
             return
 
         source_lang = speaker.speaking_language or "so"
-        target_lang = counterpart.listening_language or "en"
+        target_lang = counterpart.listening_language or counterpart.speaking_language or "so"
         target_voice_gender = counterpart.voice_gender or "male"
 
         # Notify participants that AI is processing

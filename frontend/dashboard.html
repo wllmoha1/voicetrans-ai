@@ -3,14 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - VoiceTrans AI</title>
+  <title>Dashboard & Social Chat - VoiceTrans AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between">
+
+  <!-- Incoming Call Ringing Modal -->
+  <div id="incomingCallModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel p-6 sm:p-8 max-w-sm w-full text-center space-y-5 border-indigo-500/50 shadow-2xl animate-bounce">
+      <div class="w-20 h-20 mx-auto rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-4xl shadow-inner">
+        📲
+      </div>
+      <div>
+        <h3 id="incomingCallerName" class="text-xl font-extrabold text-white">Saaxiib</h3>
+        <p class="text-xs text-indigo-300 mt-1">Wuxuu kugu soo wacayaa wicitaan toos ah...</p>
+      </div>
+      <div class="flex gap-4 justify-center pt-2">
+        <button id="acceptCallBtn" class="flex-1 py-3 rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 text-sm flex items-center justify-center gap-2">
+          <span>📞</span><span>Ka Qabo</span>
+        </button>
+        <button id="rejectCallBtn" class="flex-1 py-3 rounded-2xl font-bold bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/30 text-sm flex items-center justify-center gap-2">
+          <span>❌</span><span>Iska Jar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Navbar -->
-  <header class="border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-50 bg-slate-950/70">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+  <header class="border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 bg-slate-950/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30">
           🎙️
@@ -26,248 +48,378 @@
           <div id="navUsername" class="text-xs text-slate-400">@user</div>
         </div>
         <button id="logoutBtn" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition">
-          Ka Bax (Logout)
+          Ka Bax
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Dashboard Content -->
-  <main class="max-w-6xl mx-auto px-6 py-10 flex-1 w-full space-y-8">
-    <!-- Welcome Header -->
-    <div class="glass-panel p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-white">
-          Ku soo dhawoow, <span id="welcomeName" class="text-indigo-400">Walaal</span>! 👋
-        </h1>
-        <p class="text-sm text-slate-400 mt-1">
-          Halkan waxaad ka bilaabi kartaa wicitaan cusub oo cod-ilaa-cod AI ah ama waxaad ku biiri kartaa wicitaan kale.
-        </p>
-      </div>
+  <!-- Main Content: Social Friends, Chat & Quick Call Hub -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <div class="flex items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          AI Engine Online
-        </span>
-      </div>
-    </div>
+    <!-- LEFT COLUMN: Friends & Contacts (4 cols) -->
+    <div class="lg:col-span-4 flex flex-col space-y-4">
 
-    <!-- Action Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Card 1: Start Instant Call -->
-      <div class="glass-panel p-6 sm:p-8 flex flex-col justify-between space-y-6 border-indigo-500/30">
-        <div>
-          <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl mb-4">
-            📞
-          </div>
-          <h2 class="text-xl font-bold text-white mb-2">Bilaaw Wicitaan Cusub (Start Call)</h2>
-          <p class="text-sm text-slate-400">
-            Samee Room ID gaar ah oo la wadaag qofka aad rabto inaad la hadasho. AI ayaa si toos ah codkiina u kala turjumaysa!
-          </p>
+      <!-- Add Friend Box -->
+      <div class="glass-panel p-4 space-y-3">
+        <div class="flex justify-between items-center">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>👥</span><span>Asxaabta & Ku Xirnaanta</span>
+          </h2>
         </div>
-
-        <div id="roomCreatedBox" class="hidden p-4 rounded-xl bg-slate-900 border border-indigo-500/40 space-y-3">
-          <div class="text-xs text-indigo-300 font-medium">Room-kaaga waa diyaar:</div>
-          <div class="flex items-center gap-2">
-            <input type="text" id="roomLinkInput" readonly class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-300 font-mono">
-            <button id="copyLinkBtn" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-white whitespace-nowrap">
-              Koobiyee
-            </button>
-          </div>
-          <a id="enterRoomLink" href="#" class="block text-center w-full py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white text-sm shadow-md transition">
-            Gal Wicitaanka Hadda ➔
-          </a>
-        </div>
-
-        <button id="createRoomBtn" class="w-full py-3.5 rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600 text-white shadow-lg shadow-indigo-500/25 transition flex items-center justify-center gap-2">
-          <span>🚀</span>
-          <span>Samee Qolka Wicitaanka (Generate Call)</span>
-        </button>
-      </div>
-
-      <!-- Card 2: Join Call by Code -->
-      <div class="glass-panel p-6 sm:p-8 flex flex-col justify-between space-y-6">
-        <div>
-          <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl mb-4">
-            🔗
-          </div>
-          <h2 class="text-xl font-bold text-white mb-2">Ku Biir Wicitaan (Join Call)</h2>
-          <p class="text-sm text-slate-400">
-            Haddii qof kale uu kugu soo casuumay wicitaan, ku qor halkan Room ID-ga ama Link-ga laguugu soo diray.
-          </p>
-        </div>
-
-        <form id="joinRoomForm" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Geli Room ID ama Call Link</label>
-            <input type="text" id="joinRoomCode" required placeholder="tusaale: a4f8e19b" 
-                   class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-500">
-          </div>
-          <button type="submit" class="w-full py-3.5 rounded-xl font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white shadow-md transition flex items-center justify-center gap-2">
-            <span>Ku Biir Wicitaanka</span>
+        <form id="addFriendForm" class="flex gap-2">
+          <input type="text" id="friendUsernameInput" required placeholder="Geli Username-ka saaxiibkaa..." 
+                 class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow whitespace-nowrap">
+            + Ku Dar
           </button>
         </form>
-      </div>
-    </div>
-
-    <!-- Language & Voice Preferences Section -->
-    <div class="glass-panel p-6 sm:p-8">
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h2 class="text-lg font-bold text-white">Dookhaaga Luqadda & Codka AI (Preferences)</h2>
-          <p class="text-xs text-slate-400">Waxaad beddeli kartaa luqadaha aad ku hadlayso ama maqlayso wicitaanadaada.</p>
-        </div>
-        <div id="saveSuccessAlert" class="hidden text-xs text-emerald-400 font-semibold">✓ Waa la keydiyay!</div>
+        <div id="friendAlert" class="hidden text-xs text-emerald-400"></div>
       </div>
 
-      <form id="prefForm" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Luqadda Aad Ku Hadlayso</label>
-          <select id="prefNativeLang" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"></select>
+      <!-- Friends List -->
+      <div class="glass-panel p-4 flex-1 flex flex-col min-h-[300px] max-h-[500px]">
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+          Asxaabtaada Tooska ah
         </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Luqadda Aad Rabto Inaad Ku Maqasho</label>
-          <select id="prefTargetLang" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"></select>
+        <div id="friendsListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div class="text-center py-8 text-xs text-slate-500">
+            Weli asxaab ma haysatid. Qof username-kiisa ku dar kor!
+          </div>
         </div>
+      </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Dooro Codka AI-da</label>
-          <select id="prefVoiceGender" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500">
-            <option value="male">👨 Lab (Muuse / Guy / Hamed)</option>
-            <option value="female">👩 Dhedig (Ubax / Jenny / Salma)</option>
-          </select>
+      <!-- Quick Room Generator -->
+      <div class="glass-panel p-4 space-y-3">
+        <div class="text-xs font-bold text-white flex items-center gap-1.5">
+          <span>🔗</span><span>Link Wicitaan Degdeg ah</span>
         </div>
-
-        <div class="sm:col-span-3 flex justify-end">
-          <button type="submit" class="px-6 py-2.5 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white text-sm shadow-md transition">
-            Keydi Dookhyada
+        <div class="flex gap-2">
+          <button id="quickVoiceCallBtn" class="flex-1 py-2.5 rounded-xl font-semibold bg-indigo-600 hover:bg-indigo-500 text-white text-xs shadow flex items-center justify-center gap-1.5">
+            <span>📞</span><span>Voice Call</span>
+          </button>
+          <button id="quickVideoCallBtn" class="flex-1 py-2.5 rounded-xl font-semibold bg-cyan-600 hover:bg-cyan-500 text-white text-xs shadow flex items-center justify-center gap-1.5">
+            <span>📹</span><span>Video Call</span>
           </button>
         </div>
-      </form>
+        <div id="quickRoomResult" class="hidden p-3 rounded-xl bg-slate-900 border border-indigo-500/30 space-y-2">
+          <div class="text-[11px] text-slate-300">Link-ga wicitaanka:</div>
+          <div class="flex gap-2">
+            <input type="text" id="quickLinkInput" readonly class="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-[11px] text-slate-300 font-mono">
+            <button id="copyQuickLinkBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-white">Koobiyee</button>
+          </div>
+          <a id="enterQuickRoomLink" href="#" class="block text-center w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold">Gal Wicitaanka ➔</a>
+        </div>
+      </div>
     </div>
-  </main>
 
-  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-    &copy; 2026 VoiceTrans AI. Real-Time Multilingual Voice Translation System.
-  </footer>
+    <!-- RIGHT COLUMN: 1-on-1 Chat with Live Translation & Calling (8 cols) -->
+    <div class="lg:col-span-8 flex flex-col">
+      <div class="glass-panel flex-1 flex flex-col h-[580px] overflow-hidden">
+        
+        <!-- Chat Header -->
+        <div class="p-4 border-b border-slate-800/80 flex items-center justify-between bg-slate-900/50">
+          <div class="flex items-center gap-3">
+            <div id="chatAvatar" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-lg">
+              💬
+            </div>
+            <div>
+              <div id="chatFriendName" class="text-sm font-bold text-white">Dooro Saaxiib aad la hadasho</div>
+              <div id="chatFriendStatus" class="text-[11px] text-slate-400">Riix mid ka mid ah asxaabtaada bidix</div>
+            </div>
+          </div>
+
+          <!-- Direct Snapchat Call Actions -->
+          <div id="chatCallActions" class="hidden flex items-center gap-2">
+            <button id="startFriendVoiceCall" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-indigo-600 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+              <span>📞</span><span>Wac (Voice)</span>
+            </button>
+            <button id="startFriendVideoCall" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-cyan-600 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+              <span>📹</span><span>Video Call</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages Feed -->
+        <div id="chatMessagesFeed" class="flex-1 p-4 overflow-y-auto space-y-3">
+          <div class="text-center py-16 text-slate-500 text-xs">
+            Dooro saaxiib si aad fariin toos ah oo la turjumayo ugu qorto ama ugu wacdo!
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <form id="chatForm" class="p-3 border-t border-slate-800 bg-slate-900/60 flex items-center gap-2">
+          <input type="text" id="chatInput" disabled placeholder="Qor fariin (AI ayaa si toos ah u turjumeysa)..." 
+                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500 disabled:opacity-50">
+          <button type="submit" id="sendChatBtn" disabled class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition disabled:opacity-50 flex items-center gap-1.5">
+            <span>Dir</span><span>➔</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+  </main>
 
   <script src="/js/auth.js"></script>
   <script>
     let currentUser = null;
+    let selectedFriend = null;
+    let signalSocket = null;
 
-    async function initDashboard() {
+    async function init() {
       currentUser = await Auth.checkAuth(true);
       if (!currentUser) return;
 
       document.getElementById("navFullName").textContent = currentUser.full_name || currentUser.username;
       document.getElementById("navUsername").textContent = `@${currentUser.username}`;
-      document.getElementById("welcomeName").textContent = currentUser.full_name || currentUser.username;
 
-      await loadLanguageCatalog();
+      connectSignaling();
+      loadFriends();
     }
 
-    async function loadLanguageCatalog() {
-      try {
-        const res = await fetch("/api/languages");
-        const data = await res.json();
-        const langs = data.languages || [];
+    // Connect to User's Personal Signaling Socket for Direct Incoming Calls
+    function connectSignaling() {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      signalSocket = new WebSocket(`${protocol}//${window.location.host}/ws/signal/${currentUser.id}`);
 
-        const nativeSelect = document.getElementById("prefNativeLang");
-        const targetSelect = document.getElementById("prefTargetLang");
-
-        langs.forEach(l => {
-          const opt1 = document.createElement("option");
-          opt1.value = l.code;
-          opt1.textContent = `${l.flag || ''} ${l.name}`;
-          if (l.code === currentUser.native_language) opt1.selected = true;
-          nativeSelect.appendChild(opt1);
-
-          const opt2 = document.createElement("option");
-          opt2.value = l.code;
-          opt2.textContent = `${l.flag || ''} ${l.name}`;
-          if (l.code === currentUser.target_language) opt2.selected = true;
-          targetSelect.appendChild(opt2);
-        });
-
-        document.getElementById("prefVoiceGender").value = currentUser.preferred_voice || "male";
-      } catch (e) {
-        console.error("Language load failed:", e);
-      }
-    }
-
-    // Create Room
-    document.getElementById("createRoomBtn").onclick = async () => {
-      const btn = document.getElementById("createRoomBtn");
-      btn.disabled = true;
-      btn.textContent = "Qolka waa la furayaa...";
-
-      try {
-        const res = await Auth.authFetch("/api/rooms/create", { method: "POST" });
-        const data = await res.json();
-        if (res.ok) {
-          const fullLink = `${window.location.origin}/call/${data.room_id}`;
-          document.getElementById("roomLinkInput").value = fullLink;
-          document.getElementById("enterRoomLink").href = `/call/${data.room_id}`;
-          document.getElementById("roomCreatedBox").classList.remove("hidden");
-          btn.textContent = "Samee Qol Kale";
-          btn.disabled = false;
-        }
-      } catch (err) {
-        alert("Qolka lama abuuri karo hadda.");
-        btn.disabled = false;
-        btn.textContent = "Samee Qolka Wicitaanka (Generate Call)";
-      }
-    };
-
-    // Copy Link
-    document.getElementById("copyLinkBtn").onclick = () => {
-      const input = document.getElementById("roomLinkInput");
-      navigator.clipboard.writeText(input.value);
-      document.getElementById("copyLinkBtn").textContent = "✓ La koobiyeeyay!";
-      setTimeout(() => {
-        document.getElementById("copyLinkBtn").textContent = "Koobiyee";
-      }, 2000);
-    };
-
-    // Join Room
-    document.getElementById("joinRoomForm").onsubmit = (e) => {
-      e.preventDefault();
-      let code = document.getElementById("joinRoomCode").value.trim();
-      // If full url pasted, extract room id
-      if (code.includes("/call/")) {
-        code = code.split("/call/")[1].split("?")[0].replace("/", "");
-      }
-      if (code) {
-        window.location.href = `/call/${code}`;
-      }
-    };
-
-    // Save Preferences
-    document.getElementById("prefForm").onsubmit = async (e) => {
-      e.preventDefault();
-      const payload = {
-        native_language: document.getElementById("prefNativeLang").value,
-        target_language: document.getElementById("prefTargetLang").value,
-        preferred_voice: document.getElementById("prefVoiceGender").value
+      signalSocket.onopen = () => {
+        // Keep signaling alive
+        setInterval(() => {
+          if (signalSocket.readyState === WebSocket.OPEN) {
+            signalSocket.send(JSON.stringify({ type: "ping" }));
+          }
+        }, 15000);
       };
 
-      const res = await Auth.authFetch("/api/auth/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const alertBox = document.getElementById("saveSuccessAlert");
-        alertBox.classList.remove("hidden");
-        setTimeout(() => alertBox.classList.add("hidden"), 3000);
+      signalSocket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "incoming_call") {
+            showIncomingCall(data);
+          } else if (data.type === "chat_message") {
+            if (selectedFriend && (data.message.sender_id === selectedFriend.id || data.message.receiver_id === selectedFriend.id)) {
+              appendMessage(data.message, false);
+            }
+          } else if (data.type === "new_friend") {
+            loadFriends();
+          }
+        } catch (e) {}
+      };
+    }
+
+    function showIncomingCall(data) {
+      document.getElementById("incomingCallerName").textContent = data.caller_name || "Saaxiib";
+      document.getElementById("incomingCallModal").classList.remove("hidden");
+
+      document.getElementById("acceptCallBtn").onclick = () => {
+        window.location.href = `/call/${data.room_id}?type=${data.call_type || 'voice'}`;
+      };
+
+      document.getElementById("rejectCallBtn").onclick = () => {
+        document.getElementById("incomingCallModal").classList.add("hidden");
+      };
+    }
+
+    async function loadFriends() {
+      try {
+        const res = await Auth.authFetch("/api/friends");
+        const data = await res.json();
+        const list = data.friends || [];
+        const container = document.getElementById("friendsListContainer");
+
+        if (list.length === 0) {
+          container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Weli asxaab ma haysatid. Qof username-kiisa ku dar kor!</div>`;
+          return;
+        }
+
+        container.innerHTML = "";
+        list.forEach(f => {
+          const item = document.createElement("div");
+          item.className = "p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 cursor-pointer flex items-center justify-between transition";
+          item.innerHTML = `
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-indigo-600/30 text-indigo-300 flex items-center justify-center font-bold text-xs">
+                ${(f.full_name || f.username).charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div class="text-xs font-bold text-white">${f.full_name || f.username}</div>
+                <div class="text-[10px] text-slate-400">@${f.username} • 🗣️ ${f.native_language.toUpperCase()}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full ${f.is_online ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}"></span>
+              <span class="text-[10px] text-slate-400">${f.is_online ? 'Online' : 'Offline'}</span>
+            </div>
+          `;
+
+          item.onclick = () => selectFriend(f);
+          container.appendChild(item);
+        });
+      } catch (e) {
+        console.warn(e);
       }
+    }
+
+    function selectFriend(friend) {
+      selectedFriend = friend;
+      document.getElementById("chatFriendName").textContent = friend.full_name || friend.username;
+      document.getElementById("chatFriendStatus").textContent = `@${friend.username} • Luqadda: ${friend.native_language.toUpperCase()}`;
+      document.getElementById("chatCallActions").classList.remove("hidden");
+      document.getElementById("chatInput").disabled = false;
+      document.getElementById("sendChatBtn").disabled = false;
+
+      // Setup Call Buttons
+      document.getElementById("startFriendVoiceCall").onclick = () => initiateDirectCall(friend, "voice");
+      document.getElementById("startFriendVideoCall").onclick = () => initiateDirectCall(friend, "video");
+
+      loadChatHistory(friend.id);
+    }
+
+    async function initiateDirectCall(friend, callType) {
+      try {
+        const res = await Auth.authFetch(`/api/rooms/create?call_type=${callType}`, { method: "POST" });
+        const data = await res.json();
+        const roomId = data.room_id;
+
+        // Ring target friend via signaling socket
+        if (signalSocket && signalSocket.readyState === WebSocket.OPEN) {
+          signalSocket.send(JSON.stringify({
+            type: "call_user",
+            target_id: friend.id,
+            room_id: roomId,
+            caller_name: currentUser.full_name || currentUser.username,
+            call_type: callType
+          }));
+        }
+
+        // Navigate caller to call screen immediately
+        window.location.href = `/call/${roomId}?type=${callType}`;
+      } catch (err) {
+        alert("Wicitaanka lama bilaabi karo.");
+      }
+    }
+
+    async function loadChatHistory(friendId) {
+      const feed = document.getElementById("chatMessagesFeed");
+      feed.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Fariimaha waa la soo qaadayaa...</div>`;
+      try {
+        const res = await Auth.authFetch(`/api/chat/${friendId}`);
+        const data = await res.json();
+        const msgs = data.messages || [];
+
+        if (msgs.length === 0) {
+          feed.innerHTML = `<div class="text-center py-12 text-xs text-slate-500">Halkan fariin ugu qor ${selectedFriend.full_name || selectedFriend.username}! AI ayaa toos u turjumi doonta.</div>`;
+          return;
+        }
+
+        feed.innerHTML = "";
+        msgs.forEach(m => appendMessage(m, m.is_me));
+      } catch (e) {
+        feed.innerHTML = `<div class="text-center py-8 text-xs text-red-400">Khalad ayaa dhacay.</div>`;
+      }
+    }
+
+    function appendMessage(m, isMe) {
+      const feed = document.getElementById("chatMessagesFeed");
+      const bubble = document.createElement("div");
+      bubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+      bubble.innerHTML = `
+        <div class="max-w-[75%] p-3 rounded-2xl ${isMe ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-200 border border-slate-700'} text-xs space-y-1 shadow">
+          <div class="font-medium">${m.original_text}</div>
+          ${m.translated_text && m.translated_text !== m.original_text ? `
+            <div class="text-[10px] ${isMe ? 'text-indigo-200' : 'text-slate-400'} pt-1 border-t ${isMe ? 'border-indigo-400/40' : 'border-slate-700'} flex items-center gap-1">
+              <span>🤖 [${m.target_lang.toUpperCase()}]:</span>
+              <span class="italic font-semibold">${m.translated_text}</span>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      feed.appendChild(bubble);
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // Send Chat
+    document.getElementById("chatForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const text = input.value.trim();
+      if (!text || !selectedFriend) return;
+
+      input.value = "";
+      try {
+        const res = await Auth.authFetch("/api/chat/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            receiver_id: selectedFriend.id,
+            text: text,
+            target_language: selectedFriend.native_language
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          appendMessage(data.data, true);
+        }
+      } catch (e) {}
+    };
+
+    // Add Friend Form
+    document.getElementById("addFriendForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("friendUsernameInput");
+      const username = input.value.trim();
+      const alertBox = document.getElementById("friendAlert");
+
+      try {
+        const res = await Auth.authFetch("/api/friends/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ target_username: username })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alertBox.textContent = `✓ ${data.message}`;
+          alertBox.className = "text-xs text-emerald-400";
+          alertBox.classList.remove("hidden");
+          input.value = "";
+          loadFriends();
+        } else {
+          alertBox.textContent = data.detail || "Lama heli karo.";
+          alertBox.className = "text-xs text-red-400";
+          alertBox.classList.remove("hidden");
+        }
+      } catch (err) {
+        alertBox.textContent = "Server error.";
+        alertBox.classList.remove("hidden");
+      }
+    };
+
+    // Quick Voice Call / Video Call Button
+    const makeQuickCall = async (type) => {
+      const res = await Auth.authFetch(`/api/rooms/create?call_type=${type}`, { method: "POST" });
+      const data = await res.json();
+      const fullUrl = `${window.location.origin}/call/${data.room_id}?type=${type}`;
+
+      document.getElementById("quickLinkInput").value = fullUrl;
+      document.getElementById("enterQuickRoomLink").href = `/call/${data.room_id}?type=${type}`;
+      document.getElementById("quickRoomResult").classList.remove("hidden");
+    };
+
+    document.getElementById("quickVoiceCallBtn").onclick = () => makeQuickCall("voice");
+    document.getElementById("quickVideoCallBtn").onclick = () => makeQuickCall("video");
+
+    document.getElementById("copyQuickLinkBtn").onclick = () => {
+      const inp = document.getElementById("quickLinkInput");
+      navigator.clipboard.writeText(inp.value);
+      document.getElementById("copyQuickLinkBtn").textContent = "✓";
+      setTimeout(() => document.getElementById("copyQuickLinkBtn").textContent = "Koobiyee", 2000);
     };
 
     document.getElementById("logoutBtn").onclick = () => Auth.logout();
 
-    initDashboard();
+    init();
   </script>
 </body>
 </html>
